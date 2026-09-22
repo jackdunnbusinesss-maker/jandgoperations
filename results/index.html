@@ -90,7 +90,9 @@
   .play svg{width:22px;height:22px;margin-left:4px;fill:var(--gold-ink)}
   .video:hover .play{transform:scale(1.08)}
   .video:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
-  .video iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+  .video iframe,.video video{position:absolute;inset:0;width:100%;height:100%;border:0;background:#000}
+  .video.playing{cursor:default}
+  .video.playing::after{display:none}
 
   /* featured */
   .featured{display:grid;grid-template-columns:1.35fr 1fr;border:1px solid var(--line-2);border-radius:20px;overflow:hidden;background:linear-gradient(135deg,var(--card-2),var(--bg-2))}
@@ -214,7 +216,7 @@
     </div>
     <div class="grid">
       <article class="card reveal">
-        <button class="video" data-wistia="k67dim0o2q" aria-label="Play: Fayez case study" style="background-image:url(https://embed-ssl.wistia.com/deliveries/d379f4cd9c45e60d2204e16dba3a7671601f3022.jpg?image_crop_resized=960x540)">
+        <button class="video" data-src="media/fayez.mp4" aria-label="Play: Fayez case study" style="background-image:url(media/fayez_poster.jpg)">
           <span class="play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span>
         </button>
         <div class="body">
@@ -348,17 +350,27 @@
   // Click-to-play: swap the thumbnail for the real player only when asked.
   document.querySelectorAll('.video').forEach(function (el) {
     el.addEventListener('click', function () {
-      var src = el.dataset.yt
-        ? 'https://www.youtube.com/embed/' + el.dataset.yt + '?autoplay=1&rel=0'
-        : 'https://fast.wistia.net/embed/iframe/' + el.dataset.wistia + '?autoplay=1&videoFoam=true';
-      var f = document.createElement('iframe');
-      f.src = src;
-      f.allow = 'autoplay; encrypted-media; fullscreen; picture-in-picture';
-      f.allowFullscreen = true;
       var box = document.createElement('div');
-      box.className = 'video';
+      box.className = 'video playing';
+      var f;
+      if (el.dataset.src) {
+        f = document.createElement('video');
+        f.src = el.dataset.src;
+        f.controls = true;
+        f.autoplay = true;
+        f.playsInline = true;
+        f.preload = 'auto';
+      } else {
+        f = document.createElement('iframe');
+        f.src = el.dataset.yt
+          ? 'https://www.youtube.com/embed/' + el.dataset.yt + '?autoplay=1&rel=0'
+          : 'https://fast.wistia.net/embed/iframe/' + el.dataset.wistia + '?autoplay=1&videoFoam=true';
+        f.allow = 'autoplay; encrypted-media; fullscreen; picture-in-picture';
+        f.allowFullscreen = true;
+      }
       box.appendChild(f);
       el.replaceWith(box);
+      if (f.play) f.play().catch(function () {});
     });
   });
 
